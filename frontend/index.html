@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <!-- =====================================================
+         CONFIGURAÇÃO DO DOCUMENTO
+         ===================================================== -->
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Protótipo educacional de consultas virtuais utilizando WebRTC."
+    >
+
+    <title>TeleMed | Consulta Virtual</title>
+
+    <!-- Folha de estilos principal -->
+    <link
+        rel="stylesheet"
+        href="./css/style.css"
+    >
+</head>
+
+<body>
+
+    <!-- =====================================================
+         ESTRUTURA PRINCIPAL DA APLICAÇÃO
+         ===================================================== -->
+
+    <main class="app-container">
+
+        <!-- =================================================
+             CABEÇALHO
+             ================================================= -->
+
+        <header class="app-header">
+
+            <!-- Identificação da aplicação -->
+            <div class="brand">
+
+                <h1>TeleMed</h1>
+
+                <p>
+                    Sala de Consulta Virtual
+                </p>
+
+            </div>
+
+            <!-- Indicador geral da conexão -->
+            <div
+                id="connection-status"
+                class="status status-waiting"
+                role="status"
+                aria-live="polite"
+            >
+                Aguardando conexão
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             INFORMAÇÕES E CONFIGURAÇÃO DA CONSULTA
+             ================================================= -->
+
+        <section
+            class="consultation-info"
+            aria-label="Configuração da consulta"
+        >
+
+            <!-- Identificação da sala atual -->
+            <div class="consultation-details">
+
+                <h2>Consulta Virtual</h2>
+
+                <p>
+                    Sala:
+
+                    <span id="room-id">
+                        consulta-demo
+                    </span>
+                </p>
+
+            </div>
+
+
+            <!-- Configuração de entrada na sala -->
+            <div class="room-settings">
+
+                <!-- Papel do participante -->
+                <label for="participant-role">
+                    Participante
+                </label>
+
+                <select
+                    id="participant-role"
+                    name="participant-role"
+                >
+
+                    <option value="doctor">
+                        Médico
+                    </option>
+
+                    <option value="patient">
+                        Paciente
+                    </option>
+
+                </select>
+
+
+                <!-- Identificador da sala -->
+                <label for="room-input">
+                    Identificador da sala
+                </label>
+
+                <input
+                    id="room-input"
+                    name="room-input"
+                    type="text"
+                    value="consulta-demo"
+                    maxlength="64"
+                    pattern="[A-Za-z0-9_-]+"
+                    autocomplete="off"
+                    spellcheck="false"
+                    aria-describedby="room-help"
+                >
+
+                <!-- Orientação para entrada na sala -->
+                <small
+                    id="room-help"
+                    class="room-help"
+                >
+                    Utilize o mesmo identificador
+                    nos dois navegadores.
+                </small>
+
+            </div>
+
+
+            <!-- Indicador informativo do protótipo -->
+            <span class="security-label">
+                Protótipo local
+            </span>
+
+        </section>
+
+
+        <!-- =================================================
+             ETAPA 7 — INFORMAÇÕES DA SESSÃO
+             ================================================= -->
+
+        <section
+            class="session-information"
+            aria-label="Informações da sessão"
+        >
+
+            <!-- =============================================
+                 INDICADOR DO ESTADO AUDIOVISUAL
+                 ============================================= -->
+
+            <div class="session-indicator">
+
+                <!--
+                    Atualizado pelo controlador app.js.
+
+                    Estados previstos:
+
+                    - Aguardando consulta;
+                    - Conectando participantes;
+                    - Consulta em andamento;
+                    - Conexão interrompida;
+                    - Falha na comunicação;
+                    - Consulta encerrada.
+                -->
+                <span
+                    id="session-state"
+                    class="session-state"
+                    role="status"
+                    aria-live="polite"
+                >
+                    Aguardando consulta
+                </span>
+
+            </div>
+
+
+            <!-- =============================================
+                 TEMPORIZADOR DA CONSULTA
+                 ============================================= -->
+
+            <div class="session-duration">
+
+                <span>
+                    Duração:
+                </span>
+
+                <!--
+                    Atualizado pelo módulo consultation.js
+                    por intermédio do controlador app.js.
+
+                    A contagem começa quando a conexão
+                    WebRTC alcança o estado "connected".
+
+                    O valor exibido utiliza HH:MM:SS.
+                -->
+                <time
+                    id="consultation-timer"
+                    datetime="PT0S"
+                    aria-label="Duração da conexão"
+                >
+                    00:00:00
+                </time>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             ÁREA DE COMUNICAÇÃO MULTIMÍDIA
+             ================================================= -->
+
+        <section
+            class="video-container"
+            aria-label="Área de videoconferência"
+        >
+
+            <!-- =============================================
+                 VÍDEO DO PARTICIPANTE REMOTO
+                 ============================================= -->
+
+            <article
+                class="video-card"
+                aria-label="Vídeo remoto"
+            >
+
+                <!--
+                    Recebe o MediaStream remoto por meio
+                    da RTCPeerConnection.
+
+                    A implementação WebRTC pertence
+                    ao módulo webrtc.js, consolidado
+                    na Etapa 6.
+                -->
+                <video
+                    id="remote-video"
+                    autoplay
+                    playsinline
+                    aria-label="Vídeo do participante remoto"
+                ></video>
+
+                <!-- Identificação do vídeo remoto -->
+                <div class="video-label">
+                    Participante remoto
+                </div>
+
+            </article>
+
+
+            <!-- =============================================
+                 VÍDEO DO PARTICIPANTE LOCAL
+                 ============================================= -->
+
+            <article
+                class="video-card"
+                aria-label="Vídeo local"
+            >
+
+                <!--
+                    Exibe a câmera do próprio usuário.
+
+                    O atributo muted impede a reprodução
+                    local do áudio capturado, evitando
+                    que o usuário escute sua própria voz.
+                -->
+                <video
+                    id="local-video"
+                    autoplay
+                    muted
+                    playsinline
+                    aria-label="Meu vídeo"
+                ></video>
+
+                <!-- Identificação do vídeo local -->
+                <div class="video-label">
+                    Meu vídeo
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- =================================================
+             CONTROLES DA CONSULTA
+             ================================================= -->
+
+        <section
+            class="controls"
+            aria-label="Controles da consulta"
+        >
+
+            <!-- =============================================
+                 CONTROLE DO MICROFONE
+                 ============================================= -->
+
+            <button
+                id="toggle-microphone"
+                class="control-button"
+                type="button"
+                aria-pressed="false"
+                disabled
+            >
+                Microfone
+            </button>
+
+
+            <!-- =============================================
+                 CONTROLE DA CÂMERA
+                 ============================================= -->
+
+            <button
+                id="toggle-camera"
+                class="control-button"
+                type="button"
+                aria-pressed="false"
+                disabled
+            >
+                Câmera
+            </button>
+
+
+            <!-- =============================================
+                 ENTRADA NA SALA
+                 ============================================= -->
+
+            <button
+                id="join-call"
+                class="control-button primary"
+                type="button"
+                disabled
+            >
+                Entrar na sala
+            </button>
+
+
+            <!-- =============================================
+                 SAÍDA DA SALA
+                 ============================================= -->
+
+            <button
+                id="leave-call"
+                class="control-button danger"
+                type="button"
+                disabled
+            >
+                Sair da sala
+            </button>
+
+        </section>
+
+
+        <!-- =================================================
+             RODAPÉ
+             ================================================= -->
+
+        <footer class="app-footer">
+
+            <p>
+                TeleMed — Protótipo educacional
+                de comunicação WebRTC.
+            </p>
+
+            <p>
+                Não utilizar para consultas médicas reais.
+            </p>
+
+        </footer>
+
+    </main>
+
+
+    <!-- =====================================================
+         INICIALIZAÇÃO DA APLICAÇÃO
+         ===================================================== -->
+
+    <!--
+        O módulo app.js coordena:
+
+        - Gerenciamento da interface;
+        - Captura multimídia;
+        - Conexão WebSocket;
+        - Entrada e saída das salas;
+        - Negociação WebRTC Peer-to-Peer;
+        - Recebimento de áudio e vídeo;
+        - Indicadores do estado da consulta;
+        - Temporizador da conexão.
+
+        Módulos envolvidos:
+
+        - media.js
+        - signaling.js
+        - webrtc.js
+        - ui.js
+        - consultation.js
+
+        O navegador carrega app.js como módulo principal.
+        As demais dependências são importadas por ele.
+    -->
+
+    <script
+        type="module"
+        src="./js/app.js"
+    ></script>
+
+</body>
+</html>
